@@ -4,6 +4,7 @@ import * as iam from 'aws-cdk-lib/aws-iam';
 import * as s3 from 'aws-cdk-lib/aws-s3';
 import * as secretsmanager from 'aws-cdk-lib/aws-secretsmanager';
 import { Construct } from 'constructs';
+import { ExplorationWorkGroups } from './groups';
 
 export class AmazonAthenaExplorationStack extends cdk.Stack {
   constructor(scope: Construct, id: string, props?: cdk.StackProps) {
@@ -17,37 +18,8 @@ export class AmazonAthenaExplorationStack extends cdk.Stack {
       autoDeleteObjects: true,
     });
 
-    // Create Athena WorkGroups
-    const workgroupA = new athena.CfnWorkGroup(this, 'workgroupA', {
-      name: 'workgroupA',
-      recursiveDeleteOption: true,
-      workGroupConfiguration: {
-        publishCloudWatchMetricsEnabled: true,
-        resultConfiguration: {
-          outputLocation: `s3://${athenaWorkshopBucket.bucketName}/`,
-        },
-      },
-    });
-
-    const workgroupB = new athena.CfnWorkGroup(this, 'workgroupB', {
-      name: 'workgroupB',
-      recursiveDeleteOption: true,
-    });
-
-    const workgroupIcebergPreview = new athena.CfnWorkGroup(this, 'workgroupIcebergpreview', {
-      name: 'AmazonAthenaIcebergPreview',
-      recursiveDeleteOption: true,
-      workGroupConfiguration: {
-        enforceWorkGroupConfiguration: true,
-        engineVersion: {
-          selectedEngineVersion: 'Athena engine version 3',
-        },
-        publishCloudWatchMetricsEnabled: true,
-        resultConfiguration: {
-          outputLocation: `s3://${athenaWorkshopBucket.bucketName}/`,
-        },
-      },
-    });
+    const workGroups = new ExplorationWorkGroups(this, 'WorkGroups', {athenaWorkshopBucket: athenaWorkshopBucket})
+    workGroups.node.addDependency(athenaWorkshopBucket);
 
     // Create Athena Named Queries
     const basicsCustomerCsv = new athena.CfnNamedQuery(this, 'basicscustomercsv', {
