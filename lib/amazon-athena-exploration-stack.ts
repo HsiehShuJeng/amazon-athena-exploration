@@ -5,6 +5,7 @@ import * as s3 from 'aws-cdk-lib/aws-s3';
 import * as secretsmanager from 'aws-cdk-lib/aws-secretsmanager';
 import { Construct } from 'constructs';
 import { WorkshopVPC } from './basic-networking';
+import { FederationWorkshopResources } from './federation-resources';
 import { ExplorationWorkGroups } from './groups';
 
 export class AmazonAthenaExplorationStack extends cdk.Stack {
@@ -143,6 +144,10 @@ export class AmazonAthenaExplorationStack extends cdk.Stack {
     });
 
     userAPolicy.attachToUser(userA);
+
+    new FederationWorkshopResources(this, 'FederationQueryResources', {
+      vpcStack: vpcStack
+    })
 
     // Repeat similar blocks for userB with appropriate modifications for workgroupB...
 
