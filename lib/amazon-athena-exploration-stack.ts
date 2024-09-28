@@ -4,11 +4,17 @@ import * as iam from 'aws-cdk-lib/aws-iam';
 import * as s3 from 'aws-cdk-lib/aws-s3';
 import * as secretsmanager from 'aws-cdk-lib/aws-secretsmanager';
 import { Construct } from 'constructs';
+import { WorkshopVPC } from './basic-networking';
 import { ExplorationWorkGroups } from './groups';
 
 export class AmazonAthenaExplorationStack extends cdk.Stack {
   constructor(scope: Construct, id: string, props?: cdk.StackProps) {
     super(scope, id, props);
+
+    const vpcStack = new WorkshopVPC(this, 'Basic', {
+      timeout: cdk.Duration.minutes(10),
+      description: 'Deploy VPC with 3 public subnet, Security Group, S3, S3 Endpoind, Glue VPC'
+    });
 
     // Create the S3 bucket
     const bucketName = `athena-workshop-${this.account}`;
@@ -17,6 +23,7 @@ export class AmazonAthenaExplorationStack extends cdk.Stack {
       removalPolicy: cdk.RemovalPolicy.DESTROY,
       autoDeleteObjects: true,
     });
+    athenaWorkshopBucket.node.addDependency(vpcStack);
 
     const workGroups = new ExplorationWorkGroups(this, 'WorkGroups', {athenaWorkshopBucket: athenaWorkshopBucket})
     workGroups.node.addDependency(athenaWorkshopBucket);
